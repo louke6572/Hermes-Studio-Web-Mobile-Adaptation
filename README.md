@@ -62,7 +62,7 @@ mklink /J "C:\Users\<用户名>\AppData\Local\Programs\Hermes Studio\resources\w
 
 | 登录界面 | 主界面 | 聊天界面 |
 |---------|--------|---------|
-| ![登录](screenshots/login.png) | ![主界面](screenshots/screenshot1.png) | ![聊天](screenshots/screenshot2.png) |
+| ![登录](screenshots/login.png) | ![主界面](screenshots/screenshot1.png) | ![聊天](screenshots/chat.png) |
 
 ## 技术说明
 
