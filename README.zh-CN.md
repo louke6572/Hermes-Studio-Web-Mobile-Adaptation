@@ -1,0 +1,142 @@
+# Hermes Studio Web - 移动端适配
+
+> **声明**：本项目是基于 [Hermes Studio](https://github.com/EKKOLearnAI/hermes-studio) 桌面版的移动端 Web 适配页面，非官方项目。感谢 EKKO 团队开发的优秀开源项目。
+
+Hermes Studio 桌面版的移动端 Web 适配页面。通过独立的 `mobile/` 目录提供手机优化的聊天界面，无需修改桌面版代码。
+
+[English README](README.md)
+
+## 功能特性
+
+- 📱 **移动端优化布局** - 适配手机屏幕的聊天界面
+- 🎨 **深色/浅色主题** - 跟随系统或手动切换
+- 💬 **完整聊天功能** - 消息发送、流式回复、工具调用
+- 📂 **模型切换** - 支持切换 LLM 模型和思考深度
+- 📊 **上下文显示** - 实时显示 token 用量
+- 🔧 **输入框展开** - 长文本输入时一键展开编辑
+- 📋 **侧边栏** - 会话管理、设置、历史记录
+
+## 项目结构
+
+```
+Hermes-Studio-Web/
+├── mobile/                 # 移动端页面（独立目录，更新安全）
+│   ├── index.html          # 主页面（含所有移动端适配 CSS/JS）
+│   ├── app.css             # 基础样式
+│   ├── chat-page.css       # 聊天页面样式
+│   ├── socket.io.min.js    # WebSocket 客户端
+│   └── icons/              # 图标文件
+├── screenshots/            # 软件截图
+│   ├── login.png           # 登录界面
+│   ├── screenshot1.png     # 主界面
+│   └── chat.png            # 聊天界面
+├── install.bat             # 一键安装脚本
+└── README.md               # 本文件
+```
+
+## 安装方法
+
+### 前置要求
+
+- Hermes Studio 桌面版已安装并运行（默认端口 `8748`）
+- 手机和电脑在同一局域网（或使用 frp 穿透）
+
+### 步骤 1：放置 mobile 目录
+
+将 `mobile/` 目录复制到 Hermes Studio 的 Web UI 目录：
+
+```bash
+# Windows 示例
+xcopy /E /I mobile "C:\Users\<用户名>\AppData\Local\Programs\Hermes Studio\resources\webui\dist\client\mobile"
+
+# 或者创建目录链接（推荐，更新安全）
+mklink /J "C:\Users\<用户名>\AppData\Local\Programs\Hermes Studio\resources\webui\dist\client\mobile" "C:\path\to\Hermes-Studio-Web\mobile"
+```
+
+### 步骤 2：访问移动端页面
+
+- **局域网**: `http://<电脑IP>:8748/mobile/`
+  - 示例: `http://192.168.1.x:8748/mobile/`（把 x 换成你的电脑 IP 最后一段）
+- **外网（frp 穿透）**: `http://<服务器IP>:8748/mobile/`
+  - 示例: `http://<你的服务器IP或域名>:8748/mobile/`
+
+### 步骤 3：手机浏览器打开
+
+用手机 Safari/Chrome 打开上述地址即可。
+
+## 界面截图
+
+| 登录界面 | 主界面 | 聊天界面 |
+|---------|--------|---------|
+| ![登录](screenshots/login.png) | ![主界面](screenshots/screenshot1.png) | ![聊天](screenshots/chat.png) |
+
+## 技术说明
+
+### 实现原理
+
+1. **复用桌面版资源** - 加载桌面版的 Vite bundle（JS/CSS），不重复实现逻辑
+2. **CSS 覆盖层** - 在 `mobile/index.html` 中注入移动端适配样式
+3. **DOM 重组** - 用 JavaScript 调整输入框、工具栏的布局结构
+4. **Junction 链接** - 用 Windows 目录链接避免桌面版更新覆盖
+
+### 关键特性
+
+| 特性 | 实现方式 |
+|------|---------|
+| 输入框展开 | 负 margin-top + 高度扩展，底部固定向上生长 |
+| 模型切换对齐 | 动态读取思考等级按钮宽度，强制一致 |
+| 主题切换 | CSS 变量 `--bg-card` / `--text-primary` 自动适配 |
+| 发送按钮 | 提取桌面版 SVG 图标（线性箭头/方块） |
+| 侧边栏 | 全屏抽屉化，字体/图标放大适配触摸 |
+
+## 更新维护
+
+桌面版更新后，如果 `webui/dist/client/mobile/` 被清除：
+
+1. 重新创建 junction 链接：
+   ```bash
+   mklink /J "C:\Users\<用户名>\AppData\Local\Programs\Hermes Studio\resources\webui\dist\client\mobile" "C:\path\to\Hermes-Studio-Web\mobile"
+   ```
+
+2. 或者重新复制 `mobile/` 目录到 `webui/dist/client/`
+
+## 许可证与合规声明
+
+**重要**：本项目是基于 Hermes Studio 的移动端适配，Hermes Studio 使用 **Business Source License 1.1 (BSL 1.1)** 许可证。
+
+### 允许的使用场景 ✅
+- 个人使用
+- 教育用途
+- 研究目的
+
+### 需要商业授权的场景 ❌
+- 销售或授权给他人使用
+- SaaS 托管服务
+- 嵌入到商业产品中
+
+> 商业使用需要联系 EKKOLearnAI 获取单独的商业许可证。
+> BSL 1.1 许可证将在 **2029-05-10** 自动转换为 Apache License 2.0。
+
+### 原项目许可证
+
+- **Hermes Studio**: https://github.com/EKKOLearnAI/hermes-studio/blob/main/LICENSE
+- **许可证类型**: Business Source License 1.1 (BSL 1.1)
+- **转换日期**: 2029-05-10 转为 Apache 2.0
+
+本项目代码本身采用 MIT License，但使用 Hermes Studio 相关资源时需遵守其 BSL 1.1 许可证条款。
+
+## 致谢
+
+- **[Hermes Studio](https://github.com/EKKOLearnAI/hermes-studio)** - 由 EKKO 开发的 AI 助手桌面应用，本项目基于其 Web UI 进行移动端适配
+  - GitHub: https://github.com/EKKOLearnAI/hermes-studio
+  - 官网: https://hermes-studio.ai/
+- **[Naive UI](https://www.naiveui.com/)** - 桌面版使用的 Vue 组件库
+  - GitHub: https://github.com/tusen-ai/naive-ui
+- **[Socket.IO](https://socket.io/)** - 实时通信库
+  - GitHub: https://github.com/socketio/socket.io
+
+## 相关项目
+
+- [Hermes Studio](https://github.com/EKKOLearnAI/hermes-studio) - 桌面版主项目（官方）
+  - GitHub: https://github.com/EKKOLearnAI/hermes-studio
+  - 官网: https://hermes-studio.ai/
