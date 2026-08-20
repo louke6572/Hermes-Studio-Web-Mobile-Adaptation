@@ -97,9 +97,31 @@ mklink /J "C:\Users\<用户名>\AppData\Local\Programs\Hermes Studio\resources\w
 
 2. 或者重新复制 `mobile/` 目录到 `webui/dist/client/`
 
-## 许可证
+## 许可证与合规声明
 
-MIT License - 与 Hermes Studio 保持一致
+**重要**：本项目是基于 Hermes Studio 的移动端适配，Hermes Studio 使用 **Business Source License 1.1 (BSL 1.1)** 许可证。
+
+### 允许的使用场景 ✅
+- 个人使用（Personal use）
+- 教育用途（Education）
+- 研究目的（Research）
+
+### 需要商业授权的场景 ❌
+- 销售或授权给他人使用
+- SaaS 托管服务
+- 嵌入到商业产品中
+
+> 商业使用需要联系 EKKOLearnAI 获取单独的商业许可证。
+> 
+> BSL 1.1 许可证将在 **2029-05-10** 自动转换为 Apache License 2.0。
+
+### 原项目许可证
+
+- **Hermes Studio**: https://github.com/EKKOLearnAI/hermes-studio/blob/main/LICENSE
+- **许可证类型**: Business Source License 1.1 (BSL 1.1)
+- **转换日期**: 2029-05-10 转为 Apache 2.0
+
+本项目代码本身采用 MIT License，但使用 Hermes Studio 相关资源时需遵守其 BSL 1.1 许可证条款。
 
 ## 致谢
 
