@@ -103,10 +103,16 @@ MIT License - 与 Hermes Studio 保持一致
 ## 致谢
 
 - **[Hermes Studio](https://github.com/NousResearch/hermes-agent)** - 由 [Nous Research](https://nousresearch.com/) 开发的 AI 助手桌面应用，本项目基于其 Web UI 进行移动端适配
+  - GitHub: https://github.com/NousResearch/hermes-agent
+  - 官网: https://nousresearch.com/
 - **[Naive UI](https://www.naiveui.com/)** - 桌面版使用的 Vue 组件库
+  - GitHub: https://github.com/tusen-ai/naive-ui
 - **[Socket.IO](https://socket.io/)** - 实时通信库
+  - GitHub: https://github.com/socketio/socket.io
 
 ## 相关项目
 
 - [Hermes Studio](https://github.com/NousResearch/hermes-agent) - 桌面版主项目（官方）
+  - GitHub: https://github.com/NousResearch/hermes-agent
 - [Hermes Agent](https://github.com/NousResearch/hermes-agent) - Hermes Agent 核心
+  - GitHub: https://github.com/NousResearch/hermes-agent
