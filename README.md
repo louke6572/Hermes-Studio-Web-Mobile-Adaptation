@@ -53,8 +53,9 @@ mklink /J "C:\Users\<用户名>\AppData\Local\Programs\Hermes Studio\resources\w
 ### 步骤 2：访问移动端页面
 
 - **局域网**: `http://<电脑IP>:8748/mobile/`
-  - 示例: `http://192.168.1.109:8748/mobile/`
+  - 示例: `http://192.168.1.x:8748/mobile/`（把 x 换成你的电脑 IP 最后一段）
 - **外网（frp 穿透）**: `http://<服务器IP>:8748/mobile/`
+  - 示例: `http://<你的服务器IP或域名>:8748/mobile/`
 
 ### 步骤 3：手机浏览器打开
 
