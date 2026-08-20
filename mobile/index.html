@@ -1,0 +1,941 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#f7f7f4" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Hermes Studio" />
+  <title>Hermes Studio（手机版）</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+  <link rel="stylesheet" href="/assets/css/index-XoMlBzjb.css" />
+  <style>
+    /* ==== 移动端适配层（仅覆盖，不修改桌面版）==== */
+    html, body, #app {
+      min-height: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: #f7f7f4;
+      overscroll-behavior: none;
+    }
+    html.dark body {
+      background: #1a1a1a;
+    }
+
+    /* 100dvh 处理 iOS 地址栏 */
+    #app { height: 100dvh; }
+
+    /* 防止 iOS 双击缩放 */
+    * { -webkit-tap-highlight-color: transparent; }
+
+    /* 安全区（刘海屏） */
+    .chat-header {
+      padding-top: env(safe-area-inset-top, 0px) !important;
+    }
+    .chat-composer-wrap, .composer-panel, [class*="composer"] {
+      padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+    }
+
+    /* 触摸目标最小 44px（发送按钮单独放行，桌面版已自带圆形 36px 圆角） */
+    button, [role="button"], .n-button {
+      min-height: 44px !important;
+    }
+    .n-button--small-type {
+      min-height: 40px !important;
+    }
+    /* ============================================================
+       官方 APP 布局（豆包识图第 3 轮精确结论）：
+       ┌─────────────────── 框 1（独立悬浮配置栏）──────────────────┐
+       │ [模型▼] [上下文编辑▼]                上下文 32k / 1.0M │
+       └────────────────────────────────────────────────────────┘
+                          ↕ 垂直留白 8-12px
+       ┌──────────── 框 2（输入框 + 底部图标，共用外框）─────────┐
+       │ 输入消息…                                                │
+       ├────────────────────────────────────────────────────────┤
+       │ [ + ] [ ⚙ ] [ 📄 ] [ 🎤 ] [ ⬆ 圆形 ]  │
+       └────────────────────────────────────────────────────────┘
+       ============================================================ */
+
+    /* 发送按钮：黑色实心圆 + 白图标（提取自原版 Web UI，使用 Material Send 图标） */
+    .input-wrapper .input-actions .send-button.send,
+    .input-wrapper .input-actions button.send-button,
+    .send-button.send.send-button {
+      min-height: 0 !important;
+      width: 36px !important;
+      min-width: 36px !important;
+      height: 36px !important;
+      border-radius: 50% !important;
+      padding: 0 !important;
+      flex: 0 0 36px !important;
+      background: #1a1a1a !important;
+      color: #fff !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    /* 发送按钮内的图标 SVG — 让 SVG 自身的 fill/stroke 属性生效（原版线性箭头 + 实心方块） */
+    .send-button svg,
+    .send-button .n-icon-slot svg {
+      color: #fff !important;
+      flex-shrink: 0 !important;
+      aspect-ratio: 1 / 1 !important;
+    }
+
+    /* 顶部配置栏所有按钮图标统一尺寸和对齐 */
+    .input-toolbar svg,
+    .input-toolbar .n-icon-slot svg {
+      width: 14px !important;
+      height: 14px !important;
+      flex-shrink: 0 !important;
+    }
+    /* 顶部配置栏按钮统一高度和垂直对齐 */
+    .input-toolbar .n-button {
+      min-height: 0 !important;
+      height: 32px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: auto !important;
+      min-width: 0 !important;
+      flex-shrink: 0 !important;
+    }
+    /* 模型按钮：隐藏文字（太长放不下），保留下拉箭头 */
+    .input-wrapper .input-toolbar button.input-model-button span.n-button__content {
+      display: none !important;
+    }
+    .input-wrapper .input-toolbar button.input-model-button span.n-button__icon {
+      margin-right: 0 !important;
+    }
+    .input-wrapper .input-toolbar button.input-model-button svg {
+      width: 14px !important;
+      height: 14px !important;
+    }
+    .input-toolbar .n-button .n-icon-slot {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    /* 输入框展开/折叠按钮 */
+    .mobile-expand-btn {
+      position: absolute !important;
+      top: 6px !important;
+      right: 8px !important;
+      width: 24px !important;
+      height: 24px !important;
+      min-width: 24px !important;
+      min-height: 24px !important;
+      border-radius: 6px !important;
+      background: rgba(0, 0, 0, 0.05) !important;
+      border: none !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      cursor: pointer !important;
+      z-index: 10 !important;
+      color: var(--text-secondary, #666) !important;
+      padding: 0 !important;
+      transition: background 0.2s !important;
+    }
+    .mobile-expand-btn:hover {
+      background: rgba(0, 0, 0, 0.1) !important;
+    }
+    .mobile-expand-btn svg {
+      width: 14px !important;
+      height: 14px !important;
+      fill: none !important;
+      stroke: currentColor !important;
+      stroke-width: 2 !important;
+    }
+    /* 展开状态：向上扩展，底部不动，不脱离文档流 */
+    .module-2-box.expanded {
+      position: relative !important;
+      z-index: 100 !important;
+      border-radius: 14px !important;
+      background: var(--bg-card, #fff) !important;
+      display: flex !important;
+      flex-direction: column !important;
+      box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12) !important;
+      border: 1px solid var(--border-color, #e5e5e5) !important;
+      overflow: hidden !important;
+    }
+    .module-2-box.expanded .input-textarea {
+      flex: 1 1 auto !important;
+      max-height: none !important;
+      height: auto !important;
+      min-height: 100px !important;
+      color: var(--text-primary, #1a1a1a) !important;
+      -webkit-text-fill-color: var(--text-primary, #1a1a1a) !important;
+    }
+    .module-2-box.expanded .input-actions {
+      flex: 0 0 auto !important;
+    }
+    /* 展开时输入框文字颜色加深（正常浏览） */
+    .input-textarea,
+    .input-textarea textarea {
+      color: var(--text-primary, #1a1a1a) !important;
+      -webkit-text-fill-color: var(--text-primary, #1a1a1a) !important;
+    }
+    .input-textarea::placeholder,
+    .input-textarea textarea::placeholder {
+      color: var(--text-secondary, #aaa) !important;
+      -webkit-text-fill-color: var(--text-secondary, #aaa) !important;
+    }
+
+    /* 顶部区域：不覆盖 CSS 变量，让桌面版变量控制深色/浅色主题 */
+    .app-layout.app-layout,
+    div.app-layout[data-v-78fa4b39],
+    .app-layout[data-v-78fa4b39] {
+      background: var(--bg-card) !important;
+    }
+    /* 顶部 header 统一高度和垂直居中 */
+    .app-layout .chat-header[data-v-78fa4b39],
+    .app-layout .chat-header {
+      display: flex !important;
+      align-items: center !important;
+      height: 48px !important;
+      min-height: 48px !important;
+      padding: 0 12px 0 52px !important;
+      margin: 0 !important;
+    }
+    /* hamburger 按钮：透明背景，统一尺寸 */
+    .app-layout .hamburger-btn[data-v-78fa4b39].hamburger-btn,
+    .app-layout button.hamburger-btn.hamburger-btn,
+    button.hamburger-btn[data-v-78fa4b39] {
+      background: transparent !important;
+      border: none !important;
+      border-radius: 8px !important;
+      width: 40px !important;
+      height: 40px !important;
+      min-width: 40px !important;
+      min-height: 40px !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      position: fixed !important;
+      top: 4px !important;
+      left: 8px !important;
+      z-index: 1 !important;  /* 低于侧边栏层级，侧边栏展开时遮挡 */
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      color: var(--text-secondary, #555) !important;
+      box-shadow: none !important;  /* 去掉阴影 */
+    }
+    .app-layout .hamburger-btn:hover {
+      background: rgba(0, 0, 0, 0.06) !important;
+    }
+    /* 工作区/文件/编辑标签：去掉背景色，统一高度，文字截断 */
+    .app-layout .workspace-badge[data-v-fd1ac29e],
+    .app-layout button.workspace-badge,
+    .app-layout .workspace-badge.workspace-badge {
+      background: transparent !important;
+      border: none !important;
+      padding: 0 6px !important;
+      margin: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      height: 40px !important;
+      min-height: 40px !important;
+      max-height: 40px !important;
+      line-height: 1 !important;
+      width: auto !important;
+      min-width: 0 !important;
+      max-width: 140px !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+      color: var(--text-secondary, #555) !important;
+    }
+    .app-layout .workspace-badge svg {
+      width: 14px !important;
+      height: 14px !important;
+      flex-shrink: 0 !important;
+    }
+    /* header-left 里的侧边栏折叠按钮隐藏（和 hamburger 重复了） */
+    .app-layout .chat-header .header-left .header-sidebar-toggle {
+      display: none !important;
+    }
+    /* header-left 垂直居中 */
+    .app-layout .chat-header .header-left {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      height: 48px !important;
+      min-height: 48px !important;
+      max-height: 48px !important;
+      gap: 8px !important;
+      flex: 1 1 auto !important;
+    }
+    /* header-actions 垂直居中 */
+    .app-layout .chat-header .header-actions {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-end !important;
+      height: 48px !important;
+      min-height: 48px !important;
+      max-height: 48px !important;
+      gap: 4px !important;
+      flex: 0 0 auto !important;
+    }
+    /* header-actions 里的按钮统一尺寸 */
+    .app-layout .chat-header .header-actions .n-button {
+      width: 40px !important;
+      height: 40px !important;
+      min-width: 40px !important;
+      min-height: 40px !important;
+      max-height: 40px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      background: transparent !important;
+      border: none !important;
+    }
+    .app-layout .chat-header .header-actions .n-button .n-button__icon {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    .app-layout .chat-header .header-actions .n-button svg {
+      width: 18px !important;
+      height: 18px !important;
+      flex-shrink: 0 !important;
+    }
+    /* 去掉按钮点击/悬停后的残留背景色 */
+    .app-layout .chat-header .header-actions .n-button:hover,
+    .app-layout .chat-header .header-actions .n-button:active,
+    .app-layout .chat-header .header-actions .n-button:focus {
+      background: transparent !important;
+      background-color: transparent !important;
+    }
+    /* 移动端隐藏所有 tooltip（点击后残留显示） */
+    .n-popover.n-tooltip,
+    .n-popover[class*=tooltip],
+    .n-popover-shared--show-arrow,
+    .n-popover-shared--show-arrow.n-popover,
+    div.n-popover.n-tooltip {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+    /* Naive UI select 下拉框在浅色模式下颜色适配 */
+    .n-base-selection-label {
+      background: var(--bg-card, #ffffff) !important;
+      border-color: var(--border-color, #e5e5e5) !important;
+    }
+    .n-base-selection-input,
+    .n-base-selection-input__content {
+      color: var(--text-primary, #1a1a1a) !important;
+    }
+    .n-base-selection-label .n-base-suffix__arrow {
+      color: var(--text-secondary, #555) !important;
+    }
+    /* Naive UI 下拉菜单/弹窗在浅色模式下颜色适配 */
+    .n-base-select-menu,
+    .n-base-select-option,
+    .n-dropdown-menu,
+    .n-dropdown-option,
+    .n-popover,
+    .n-modal,
+    .n-drawer,
+    .n-card,
+    .n-dialog {
+      background: var(--bg-card, #ffffff) !important;
+      color: var(--text-primary, #1a1a1a) !important;
+    }
+    .n-base-select-option:hover,
+    .n-dropdown-option:hover {
+      background: var(--hover-color, rgba(0, 0, 0, 0.06)) !important;
+    }
+    /* 下拉菜单边框 */
+    .n-base-select-menu,
+    .n-dropdown-menu {
+      border: 1px solid var(--border-color, #e5e5e5) !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+    }
+    /* 下拉菜单文字 */
+    .n-base-select-option__content,
+    .n-dropdown-option-body__label {
+      color: var(--text-primary, #1a1a1a) !important;
+    }
+    /* header-left 里的按钮也统一尺寸 */
+    .app-layout .chat-header .header-left .n-button {
+      width: 36px !important;
+      height: 36px !important;
+      min-width: 36px !important;
+      min-height: 36px !important;
+      max-height: 36px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      background: transparent !important;
+      border: none !important;
+    }
+    .app-layout .chat-header .header-left .n-button svg {
+      width: 18px !important;
+      height: 18px !important;
+      flex-shrink: 0 !important;
+    }
+
+    /* 移动端消息头像缩小（桌面版 40px 太大，手机端 20px 合适） */
+    div.message img.msg-avatar,
+    .message-item img.msg-avatar,
+    .virtual-message-list .msg-avatar {
+      width: 20px !important;
+      height: 20px !important;
+      min-width: 20px !important;
+      min-height: 20px !important;
+      font-size: 10px !important;
+    }
+    /* 思考中动画头像也缩小 */
+    div.message [class*=thinking] img.msg-avatar,
+    div.message [class*=thinking-avatar] {
+      width: 20px !important;
+      height: 20px !important;
+    }
+
+    /* 让 context-usage-row 浮在配置栏最右（豆包布局：模型 → 推理 → 上下文用量） */
+    /* 不移动 DOM 位置，用 flex 让 toolbar 把 context 推出去 */
+    .input-wrapper .input-toolbar.input-toolbar,
+    .input-wrapper .input-toolbar[data-v-fabb05ff],
+    .input-wrapper div.input-toolbar {
+      order: 1;
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px !important;
+      background: var(--bg-card, #ffffff) !important;
+      border: 1px solid var(--border-color, #e5e5e5) !important;
+      border-radius: 14px !important;
+      min-height: 0 !important;
+      overflow: visible;
+      position: relative;
+    }
+    .input-wrapper .input-toolbar .input-top-bar {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center;
+      gap: 6px;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    /* 模型按钮和思考等级按钮颜色 */
+    .input-wrapper .input-toolbar .n-button {
+      color: var(--text-secondary, #a0a0a0) !important;
+    }
+    /* 上下文用量文字颜色 */
+    .input-wrapper .input-toolbar .context-usage-row {
+      color: var(--text-secondary, #666) !important;
+    }
+    /* 让模型按钮 + 推理按钮显示文字（豆包要求） */
+    .input-wrapper .input-toolbar .n-button {
+      min-height: 0 !important;
+      height: auto !important;
+      padding: 4px 10px !important;
+      border-radius: 8px !important;
+      font-size: 13px !important;
+      flex: 0 0 auto;
+      background: transparent !important;
+      border: 1px solid #e5e5e5 !important;
+    }
+
+    /* 模块 2 容器：textarea（无底边，圆角在上半）+ 底部图标栏（无顶边，圆角在下半）
+       视觉合成一个完整的圆角外框 */
+    .module-2-box {
+      border: 1px solid var(--border-color, #e5e5e5) !important;
+      border-radius: 14px !important;
+      background: var(--bg-card, #ffffff) !important;
+      overflow: hidden !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+    /* textarea 和 actions 在 box 内：去掉自身边框（外框已在 box 上） */
+    .input-wrapper textarea.input-textarea,
+    .input-wrapper .input-textarea,
+    .input-wrapper .input-textarea[data-v-fabb05ff],
+    .chat-input-area .input-wrapper .input-textarea,
+    .module-2-box .input-textarea {
+      order: 0 !important;
+      border: none !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      padding: 12px !important;
+      min-height: 80px !important;
+      margin: 0 !important;
+    }
+    /* 模块 2 下半：底部图标栏（与 textarea 拼成一个外框，无视觉分隔） */
+    .input-wrapper .input-actions,
+    .input-wrapper .input-actions[data-v-fabb05ff],
+    .chat-input-area .input-wrapper .input-actions,
+    .module-2-box .input-actions {
+      order: 1 !important;
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center;
+      gap: 0;
+      padding: 8px 12px !important;
+      background: transparent !important;
+      border: none !important;
+      border-radius: 0 !important;
+      margin: 0 !important;
+    }
+    /* 桌面版的 .input-actions 内部只有 voice 按钮 + send 按钮。
+       我们需要 5 个：+ ⚙ 📄 🎤 ⬆
+       桌面版桌面版有附件按钮(➕)、设置按钮(⚙)、文档按钮 — 这些在 .input-toolbar 里。
+       移动端：把它们全部搬到 .input-actions 框（按豆包结论，5 个图标在底部）。*/
+    /* voice 按钮：白底圆形 */
+    .input-wrapper .voice-dialogue-controls__toggle,
+    .input-wrapper button.voice-dialogue-controls__toggle,
+    .voice-dialogue-controls__toggle {
+      width: 36px !important;
+      min-width: 36px !important;
+      height: 36px !important;
+      min-height: 0 !important;
+      border-radius: 50% !important;
+      background: transparent !important;
+      border: none !important;
+      color: #555 !important;
+    }
+    /* 发送按钮：黑色实心圆，浮在 5 图标最右 */
+    .input-wrapper .input-actions .send-button {
+      margin-left: auto !important;  /* 推到最右 */
+    }
+    /* 输入面板 = 两个独立小模块（无外层大框）：
+       模块 1: input-toolbar（配置栏）
+       模块 2: input-textarea + input-actions（输入区，共享外框）
+       两个模块间用 10px 间距
+    */
+    .input-wrapper.input-wrapper,
+    .input-wrapper[data-v-fabb05ff],
+    div.input-wrapper {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 10px !important;
+      border: none !important;       /* 关键：去掉外层大框 */
+      border-radius: 0 !important;
+      background: transparent !important;
+      overflow: visible !important;
+      box-shadow: none !important;   /* 关键：去掉底部阴影 */
+    }
+    /* 模块 1：配置栏（独立小框） */
+    .input-wrapper .input-toolbar {
+      order: 1;
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px !important;
+      background: #ffffff !important;
+      border: 1px solid #e5e5e5 !important;
+      border-radius: 14px !important;
+      min-height: 0 !important;
+      margin: 0 !important;
+      overflow: visible;
+      position: relative;
+    }
+    /* 桌面版的 resize-handle 不显示 */
+    .input-wrapper .resize-handle { display: none !important; }
+
+    /* 上下文使用量文本：用 absolute 浮在配置栏最右（豆包布局：模型 → 推理 → 上下文用量） */
+    .input-wrapper .context-usage-row {
+      order: 0;
+      position: absolute !important;
+      right: 12px !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
+      padding: 0 4px !important;
+      font-size: 12px !important;
+      color: #666 !important;
+      background: transparent !important;
+      pointer-events: none;
+    }
+
+    /* 侧边栏在手机上全屏抽屉化 */
+    .app-layout .app-sidebar {
+      position: fixed !important;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: min(85vw, 340px) !important;
+      z-index: 2000;
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+      box-shadow: 0 0 24px rgba(0,0,0,0.18);
+    }
+    .app-layout.sidebar-open .app-sidebar,
+    .app-layout:not(.no-sidebar) .app-sidebar[data-open="true"],
+    body.sidebar-open .app-sidebar {
+      transform: translateX(0);
+    }
+
+    /* 头像/消息更紧凑 */
+    .message {
+      max-width: 100% !important;
+    }
+
+    /* 代码块横向滚动 */
+    pre, .code-block {
+      max-width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* markdown 表格适配 */
+    table {
+      display: block;
+      max-width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* 侧边栏移动端适配：文字和图标放大 */
+    .app-layout .app-sidebar .page-sidebar-tab,
+    .app-layout .page-sidebar-tab {
+      font-size: 15px !important;
+      min-height: 48px !important;
+      height: 48px !important;
+      padding: 10px 12px !important;
+      gap: 10px !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+    .app-layout .app-sidebar .page-sidebar-tab svg,
+    .app-layout .page-sidebar-tab svg {
+      width: 18px !important;
+      height: 18px !important;
+      flex-shrink: 0 !important;
+    }
+    .app-layout .app-sidebar .page-sidebar-tab span,
+    .app-layout .page-sidebar-tab span {
+      font-size: 15px !important;
+      line-height: 1.2 !important;
+    }
+    /* 侧边栏底部按钮 */
+    .app-layout .app-sidebar .page-sidebar-bottom,
+    .app-layout .page-sidebar-bottom {
+      padding: 8px 12px !important;
+    }
+    .app-layout .app-sidebar .page-sidebar-bottom .n-button,
+    .app-layout .page-sidebar-bottom .n-button {
+      min-height: 44px !important;
+      font-size: 15px !important;
+    }
+    /* 侧边栏整体宽度适配 */
+    .app-layout .app-sidebar {
+      width: min(85vw, 340px) !important;
+      max-width: 85vw !important;
+    }
+    /* 侧边栏顶部区域 */
+    .app-layout .app-sidebar .page-sidebar-top {
+      padding: 8px 0 !important;
+    }
+    /* 侧边栏导航 */
+    .app-layout .app-sidebar .page-sidebar-nav {
+      padding: 0 8px !important;
+    }
+
+    /* 弹窗/抽屉在手机上全宽度 */
+    .n-drawer-content-wrapper, .n-drawer-motion-container {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    .n-modal {
+      width: auto !important;
+      max-width: 94vw !important;
+      margin: 0 3vw !important;
+    }
+
+    /* 字体不小于 16px 防 iOS 自动放大 */
+    input, textarea, select {
+      font-size: 16px !important;
+    }
+
+    /* 文件/附件面板 */
+        .file-drop-zone, .attachment-panel, [class*="file-drop"] {
+          width: 100% !important;
+          max-width: 100% !important;
+        }
+
+        /* ==== 图标防拉伸：仅按钮图标，SVG 强制正方形比例 ==== */
+            .n-icon-slot svg,
+            .n-button__icon svg,
+            button svg,
+            .n-button svg {
+              width: auto !important;
+              height: auto !important;
+              max-width: 20px !important;
+              max-height: 20px !important;
+              aspect-ratio: 1 / 1 !important;
+            }
+            /* 输入工具栏图标稍微大一点，方便点按 */
+            .input-toolbar svg,
+            .chat-input-area svg {
+              max-width: 20px !important;
+              max-height: 20px !important;
+            }
+            /* 头像/在线状态圆形徽标不拉伸 */
+            .n-avatar svg,
+            .avatar svg {
+              max-width: none !important;
+              max-height: none !important;
+            }
+
+        /* ==== 输入区：圆角 + 底部安全区 + 透明背景 ==== */
+        .chat-input-area.chat-input-area,
+        div.chat-input-area,
+        .chat-input-area[data-v-78fa4b39],
+        .chat-input-area[data-v-fabb05ff] {
+          padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px) !important;
+          position: relative !important;
+          z-index: 100;
+          background: transparent !important;
+          background-color: transparent !important;
+        }
+      </style>
+    <script>
+      /* ==== 移动端 DOM 重组（一次性 + 持续防御）====
+         1. 把 textarea + actions 包到一个新 div.module-2-box 里（让它们真正合成一个圆角外框）
+         2. 把 .context-usage-row 物理搬到 .input-toolbar 内
+         3. 把 toolbar-icon(➕) 和 input-settings-button(⚙) 搬到 .input-actions
+         4. 替换发送按钮 SVG 为标准 Material send 图标（防 React stop/idle 切换时图标变形）
+      */
+      (function restructureInput() {
+        // 原版 Web UI 发送按钮 idle 图标（线性向上箭头，17x17, stroke 2.2）— 与桌面版完全一致
+        const SEND_ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"></path><path d="m5 12 7-7 7 7"></path></svg>';
+        // 原版 Web UI 发送按钮 stop 图标（实心圆角方块）— 与桌面版一致
+        const STOP_ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2.5"/></svg>';
+
+        function replaceSendIcon() {
+          const sb = document.querySelector('.send-button');
+          if (!sb) return;
+          const iconSlot = sb.querySelector('.n-icon-slot');
+          if (!iconSlot) return;
+          const isStop = sb.classList.contains('send-button--stop');
+          const targetSvg = isStop ? STOP_ICON_SVG : SEND_ICON_SVG;
+          // 直接替换整个 n-icon-slot 内容为标准 SVG
+          iconSlot.innerHTML = targetSvg;
+        }
+
+        function fix() {
+          const iw = document.querySelector('.input-wrapper');
+          if (!iw) return;
+          const tb = iw.querySelector('.input-toolbar');
+          const ac = iw.querySelector('.input-actions');
+          const ta = iw.querySelector('.input-textarea');
+          const cu = iw.querySelector('.context-usage-row');
+          if (!tb || !ac || !ta) return;
+
+          // 0) 把 .input-actions 从 toolbar 内部搬到 wrapper 直接子级
+          if (ac.parentElement === tb) {
+            iw.appendChild(ac);
+          }
+
+          // 1) 用一个真正的容器把 textarea + actions 包起来
+          let box = iw.querySelector('.module-2-box');
+          if (!box) {
+            box = document.createElement('div');
+            box.className = 'module-2-box';
+            iw.insertBefore(box, ac);
+            box.appendChild(ta);
+            box.appendChild(ac);
+          } else {
+            if (ta.parentElement !== box) box.appendChild(ta);
+            if (ac.parentElement !== box) box.appendChild(ac);
+          }
+
+          // 2) 把 context-usage-row 物理搬到 toolbar 内
+          if (cu && cu.parentElement !== tb) {
+            tb.appendChild(cu);
+          }
+          if (cu) {
+            cu.style.removeProperty('position');
+            cu.style.removeProperty('right');
+            cu.style.removeProperty('top');
+            cu.style.removeProperty('transform');
+            cu.style.removeProperty('background');
+          }
+
+          // 3) 把 toolbar-icon(➕) 和 input-settings-button(⚙) 搬到 actions 内
+          const toolbarIcon = tb.querySelector('button.toolbar-icon-button, .toolbar-icon-button');
+          const settingsBtn = tb.querySelector('button.input-settings-button, .input-settings-button');
+          if (toolbarIcon && toolbarIcon.parentElement !== ac) {
+            ac.insertBefore(toolbarIcon, ac.firstChild);
+          }
+          if (settingsBtn && settingsBtn.parentElement !== ac) {
+            const tIcon = ac.querySelector('.toolbar-icon-button');
+            if (tIcon && tIcon.nextSibling) {
+              ac.insertBefore(settingsBtn, tIcon.nextSibling);
+            } else {
+              ac.appendChild(settingsBtn);
+            }
+          }
+          tb.querySelectorAll('button.toolbar-icon-button, .input-settings-button').forEach(b => {
+            if (b.parentElement === tb) b.style.display = 'none';
+          });
+
+          // 4) 替换发送按钮图标
+          replaceSendIcon();
+
+          // 5) 模型按钮与思考等级按钮宽高一致，显示下拉箭头
+          const modelBtn = tb.querySelector('.input-model-button');
+          const reasoningBtn = tb.querySelector('.reasoning-effort-button');
+          if (modelBtn && reasoningBtn) {
+            const targetW = reasoningBtn.getBoundingClientRect().width;
+            const targetH = reasoningBtn.getBoundingClientRect().height;
+            // 始终同步到最新的推理按钮宽度（防止首次对齐时宽度未稳定）
+            if (targetW > 0) {
+              modelBtn.style.setProperty('width', targetW + 'px', 'important');
+              modelBtn.style.setProperty('min-width', targetW + 'px', 'important');
+              modelBtn.style.setProperty('max-width', targetW + 'px', 'important');
+              modelBtn.style.setProperty('flex', '0 0 ' + targetW + 'px', 'important');
+            }
+            if (targetH > 0) {
+              modelBtn.style.setProperty('height', targetH + 'px', 'important');
+              modelBtn.style.setProperty('min-height', targetH + 'px', 'important');
+              modelBtn.style.setProperty('max-height', targetH + 'px', 'important');
+            }
+            // 下拉箭头在 .n-button__content 里面，隐藏文字会连带藏掉箭头
+            // 所以把 chevron 移到按钮直接子级（content 后面）
+            const content = modelBtn.querySelector('.n-button__content');
+            const chevron = content?.querySelector('.toolbar-chevron');
+            if (chevron && chevron.parentElement === content) {
+              modelBtn.appendChild(chevron);
+              chevron.style.setProperty('display', 'inline-flex', 'important');
+              chevron.style.setProperty('width', '12px', 'important');
+              chevron.style.setProperty('height', '12px', 'important');
+              chevron.style.setProperty('margin-left', '2px', 'important');
+              chevron.style.setProperty('flex-shrink', '0', 'important');
+            }
+            // 按钮整体 flex 布局：左图标 + 右箭头，两端对齐
+            modelBtn.style.setProperty('justify-content', 'space-between', 'important');
+            modelBtn.style.setProperty('padding-left', '6px', 'important');
+            modelBtn.style.setProperty('padding-right', '6px', 'important');
+          }
+
+          // 6) 输入框展开/折叠按钮
+          const expandBox = iw.querySelector('.module-2-box');
+          if (expandBox && !expandBox.querySelector('.mobile-expand-btn')) {
+            const btn = document.createElement('button');
+            btn.className = 'mobile-expand-btn';
+            btn.type = 'button';
+            btn.setAttribute('aria-label', '展开输入框');
+            // 展开图标（四角箭头向外）
+            btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M15 3h6v6M9 3H3v6M15 21h6v-6M9 21H3v-6"/></svg>';
+            btn.addEventListener('click', function (e) {
+              e.stopPropagation();
+              e.preventDefault();
+              const isExpanded = expandBox.classList.contains('expanded');
+              if (isExpanded) {
+                // 折叠
+                expandBox.classList.remove('expanded');
+                btn.setAttribute('aria-label', '展开输入框');
+                btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M15 3h6v6M9 3H3v6M15 21h6v-6M9 21H3v-6"/></svg>';
+                expandBox.style.marginTop = '';
+                expandBox.style.height = '';
+                expandBox.style.maxHeight = '';
+                expandBox.parentElement.style.minHeight = '';
+                const tb = expandBox.parentElement.querySelector('.input-toolbar');
+                if (tb) tb.style.marginTop = '';
+              } else {
+                // 展开：底部不动，向上扩展约半屏（用负 margin-top 向上推，不脱离文档流）
+                const boxRect = expandBox.getBoundingClientRect();
+                const expandH = Math.min(window.innerHeight * 0.5, boxRect.bottom - 40) - boxRect.height;
+                expandBox.classList.add('expanded');
+                btn.setAttribute('aria-label', '折叠输入框');
+                btn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M21 15h-6v6M3 15h6v6M21 9h-6V3M3 9h6V3"/></svg>';
+                // 用负 margin-top 向上扩展，底部位置保持不变
+                expandBox.style.marginTop = '-' + expandH + 'px';
+                expandBox.style.height = (boxRect.height + expandH) + 'px';
+                expandBox.style.maxHeight = (boxRect.height + expandH) + 'px';
+                // 聚焦 textarea
+                const ta = expandBox.querySelector('.input-textarea');
+                if (ta) ta.focus();
+              }
+            });
+            // 让 module-2-box 变成定位父元素
+            expandBox.style.position = 'relative';
+            expandBox.appendChild(btn);
+          }
+
+          // 7) 替换左上角 hamburger 图标为桌面版侧边栏折叠图标（panel 风格）
+          const hamburger = document.querySelector('.hamburger-btn');
+          if (hamburger && !hamburger.dataset.iconReplaced) {
+            hamburger.dataset.iconReplaced = '1';
+            hamburger.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>';
+            hamburger.style.display = 'flex';
+            hamburger.style.alignItems = 'center';
+            hamburger.style.justifyContent = 'center';
+            hamburger.style.color = '#555';
+          }
+
+          // 8) 隐藏 header-left 里重复的侧边栏折叠按钮（和 hamburger 重复）
+          const headerLeft = document.querySelector('.header-left');
+          if (headerLeft) {
+            const dupBtn = headerLeft.querySelector('.header-sidebar-toggle');
+            if (dupBtn) {
+              dupBtn.style.setProperty('display', 'none', 'important');
+            }
+          }
+
+          // 9) 隐藏所有 tooltip（点击后残留显示）
+          document.querySelectorAll('.n-popover.n-tooltip, .n-popover[class*=tooltip]').forEach(t => {
+            t.style.setProperty('display', 'none', 'important');
+            t.style.setProperty('visibility', 'hidden', 'important');
+            t.style.setProperty('opacity', '0', 'important');
+          });
+
+          // 10) 把 theme-switch 按钮复制到顶部 header-actions
+          const headerActions = document.querySelector('.header-actions');
+          if (headerActions && !headerActions.querySelector('.theme-switch-mobile-copy')) {
+            // 创建 theme-switch 按钮（太阳/月亮图标，切换深色/浅色）
+            const btn = document.createElement('button');
+            btn.className = 'theme-switch-mobile-copy';
+            btn.type = 'button';
+            btn.setAttribute('aria-label', '切换主题');
+            btn.title = document.documentElement.classList.contains('dark') ? 'Light mode' : 'Dark mode';
+            // 太阳图标（浅色模式）
+            const sunSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+            // 月亮图标（深色模式）
+            const moonSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+            const isDark = document.documentElement.classList.contains('dark');
+            btn.innerHTML = isDark ? moonSvg : sunSvg;
+            btn.style.cssText = 'display: flex !important; align-items: center !important; justify-content: center !important; width: 36px !important; height: 36px !important; min-width: 36px !important; min-height: 36px !important; padding: 0 !important; margin: 0 !important; background: transparent !important; border: none !important; border-radius: 8px !important; color: var(--text-secondary, #555) !important; cursor: pointer !important;';
+            btn.addEventListener('click', function(e) {
+              e.stopPropagation();
+              e.preventDefault();
+              // 切换主题
+              const html = document.documentElement;
+              const isDark = html.classList.toggle('dark');
+              // 更新图标和 title
+              btn.innerHTML = isDark ? moonSvg : sunSvg;
+              btn.title = isDark ? 'Light mode' : 'Dark mode';
+              // 保存到 localStorage
+              localStorage.setItem('hms_theme', isDark ? 'dark' : 'light');
+            });
+            headerActions.insertBefore(btn, headerActions.firstChild);
+          }
+        }
+
+        // 只用 300ms 轮询防御 React 重渲染（MutationObserver + DOM 操作会形成死循环卡死主线程）
+        function start() {
+          fix();
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', start);
+        } else {
+          start();
+        }
+        setInterval(fix, 300);
+      })();
+    </script>
+</head>
+<body>
+  <!-- 桌面版同一挂载点：复用全部逻辑（登录/会话/流式/模型） -->
+  <div id="app"></div>
+  <script type="module" crossorigin src="/assets/js/index-BTA0WG_v.js"></script>
+</body>
+</html>
