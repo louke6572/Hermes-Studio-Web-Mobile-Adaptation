@@ -1,5 +1,7 @@
 # Hermes Studio Web - Mobile Adaptation
 
+> **声明**：本项目是基于 [Hermes Studio](https://github.com/NousResearch/hermes-agent) 桌面版的移动端 Web 适配页面，非官方项目。感谢 [Nous Research](https://nousresearch.com/) 团队开发的优秀开源项目。
+
 Hermes Studio 桌面版的移动端 Web 适配页面。通过独立的 `mobile/` 目录提供手机优化的聊天界面，无需修改桌面版代码。
 
 ## 功能特性
@@ -98,6 +100,13 @@ mklink /J "C:\Users\<用户名>\AppData\Local\Programs\Hermes Studio\resources\w
 
 MIT License - 与 Hermes Studio 保持一致
 
+## 致谢
+
+- **[Hermes Studio](https://github.com/NousResearch/hermes-agent)** - 由 [Nous Research](https://nousresearch.com/) 开发的 AI 助手桌面应用，本项目基于其 Web UI 进行移动端适配
+- **[Naive UI](https://www.naiveui.com/)** - 桌面版使用的 Vue 组件库
+- **[Socket.IO](https://socket.io/)** - 实时通信库
+
 ## 相关项目
 
-- [Hermes Studio](https://github.com/NousResearch/hermes-agent) - 桌面版主项目
+- [Hermes Studio](https://github.com/NousResearch/hermes-agent) - 桌面版主项目（官方）
+- [Hermes Agent](https://github.com/NousResearch/hermes-agent) - Hermes Agent 核心
