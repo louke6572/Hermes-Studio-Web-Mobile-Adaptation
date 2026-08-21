@@ -66,9 +66,13 @@ Open the URL above in your phone's Safari/Chrome browser.
 
 ## Screenshots
 
-| Login | Main | Chat |
+| Login | Sidebar | Chatting |
 |---------|--------|---------|
-| ![Login](screenshots/login.png) | ![Main](screenshots/screenshot1.png) | ![Chat](screenshots/chat.png) |
+| ![Login](screenshots/login.png) | ![Sidebar](screenshots/sidebar.png) | ![Chatting](screenshots/chatting.png) |
+
+| Conversation | Light Theme | Dark Theme |
+|---------|--------|---------|
+| ![Conversation](screenshots/conversation.png) | ![Light](screenshots/light-theme.png) | ![Dark](screenshots/dark-theme.png) |
 
 ## Technical Details
 

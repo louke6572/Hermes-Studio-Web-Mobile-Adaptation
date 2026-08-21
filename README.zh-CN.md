@@ -66,9 +66,13 @@ mklink /J "C:\Users\<用户名>\AppData\Local\Programs\Hermes Studio\resources\w
 
 ## 界面截图
 
-| 登录界面 | 主界面 | 聊天界面 |
+| 登录界面 | 侧边栏 | 对话中 |
 |---------|--------|---------|
-| ![登录](screenshots/login.png) | ![主界面](screenshots/screenshot1.png) | ![聊天](screenshots/chat.png) |
+| ![登录](screenshots/login.png) | ![侧边栏](screenshots/sidebar.png) | ![对话中](screenshots/chatting.png) |
+
+| 聊天对话 | 浅色主题 | 深色主题 |
+|---------|--------|---------|
+| ![聊天对话](screenshots/conversation.png) | ![浅色主题](screenshots/light-theme.png) | ![深色主题](screenshots/dark-theme.png) |
 
 ## 技术说明
 
